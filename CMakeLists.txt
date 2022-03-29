@@ -89,8 +89,10 @@ if(LIBXML2_WITH_THREADS)
 	find_package(Threads REQUIRED)
 endif()
 
+set(DEFS)
 if(LIBXML2_WITH_ZLIB)
 	__assert_target(zlib)
+	list(APPEND DEFS Z_PREFIX)
 	list(APPEND CMAKE_REQUIRED_LIBRARIES zlib)
 endif()
 
@@ -405,6 +407,7 @@ endif()
 
 __add_real_target(LibXml2 lib SOURCE ${LIBXML2_HDRS} ${LIBXML2_SRCS}
 							  LIB ${CMAKE_REQUIRED_LIBRARIES}
+							  DEF ${DEFS}
 							  INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/include/ ${CMAKE_CURRENT_BINARY_DIR}
 							  )
 
