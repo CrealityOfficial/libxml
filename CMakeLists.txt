@@ -91,7 +91,7 @@ endif()
 
 set(DEFS)
 if(LIBXML2_WITH_ZLIB)
-	__CC_fin(Zlib)
+	__CC_find(Zlib)
 	__assert_target(zlib)
 	list(APPEND DEFS Z_PREFIX)
 	list(APPEND CMAKE_REQUIRED_LIBRARIES zlib)
