@@ -611,3 +611,8 @@ configure_file(include/libxml/xmlversion.h.in libxml/xmlversion.h)
 if(MSVC)
 	configure_file(include/libxml/xmlwin32version.h.in libxml/xmlwin32version.h)
 endif()
+
+
+if(CC_INSTALL_LIBXML)
+	__install_directory_specif(${CMAKE_CURRENT_SOURCE_DIR}/include/ LibXml2)
+endif()
