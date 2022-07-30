@@ -24,8 +24,8 @@ option(LIBXML2_WITH_CATALOG "Add the Catalog support" ON)
 option(LIBXML2_WITH_DEBUG "Add the debugging module" ON)
 option(LIBXML2_WITH_DOCB "Add Docbook SGML support" ON)
 set(LIBXML2_WITH_EXPR ON)
-option(LIBXML2_WITH_FTP "Add the FTP support" ON)
-option(LIBXML2_WITH_HTML "Add the HTML support" OFF)
+option(LIBXML2_WITH_FTP "Add the FTP support" OFF)
+option(LIBXML2_WITH_HTML "Add the HTML support" ON)
 option(LIBXML2_WITH_HTTP "Add the HTTP support" OFF)
 option(LIBXML2_WITH_ICONV "Add ICONV support" OFF)
 option(LIBXML2_WITH_ICU "Add ICU support" OFF)
@@ -355,8 +355,8 @@ set(
 	HTMLtree.c
 	legacy.c
 	list.c
-	#nanoftp.c
-	#nanohttp.c
+	nanoftp.c
+	nanohttp.c
 	parser.c
 	parserInternals.c
 	pattern.c
