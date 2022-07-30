@@ -355,8 +355,8 @@ set(
 	HTMLtree.c
 	legacy.c
 	list.c
-	nanoftp.c
-	nanohttp.c
+	#nanoftp.c
+	#nanohttp.c
 	parser.c
 	parserInternals.c
 	pattern.c
