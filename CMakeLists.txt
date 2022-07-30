@@ -615,4 +615,5 @@ endif()
 
 if(CC_INSTALL_LIBXML)
 	__install_directory_specif(${CMAKE_CURRENT_SOURCE_DIR}/include/ LibXml2)
+	INSTALL(FILES ${CMAKE_CURRENT_BINARY_DIR}/libxml/xmlversion.h DESTINATION include/libxml/)
 endif()
