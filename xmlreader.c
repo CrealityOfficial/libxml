@@ -61,6 +61,7 @@
  * esoteric implementations of va_list but (hopefully) will
  * be sufficient for libxml2.
  */
+#define HAVE___VA_COPY 1
 #ifndef VA_COPY
   #ifdef HAVE_VA_COPY
     #define VA_COPY(dest, src) va_copy(dest, src)
