@@ -91,10 +91,9 @@ endif()
 
 set(DEFS)
 if(LIBXML2_WITH_ZLIB)
-	__CC_find(Zlib)
-	__assert_target(zlib)
-	list(APPEND DEFS Z_PREFIX)
-	list(APPEND CMAKE_REQUIRED_LIBRARIES zlib)
+	__cc_find(zlib_static)
+	__assert_target(zlib_static)
+	list(APPEND CMAKE_REQUIRED_LIBRARIES zlib_static)
 endif()
 
 foreach(VARIABLE IN ITEMS WITH_AUTOMATA WITH_C14N WITH_CATALOG WITH_DEBUG WITH_DOCB WITH_EXPR WITH_FTP WITH_HTML WITH_HTTP WITH_ICONV WITH_ICU WITH_ISO8859X WITH_LEGACY WITH_LZMA WITH_MEM_DEBUG WITH_MODULES WITH_OUTPUT WITH_PATTERN WITH_PUSH WITH_READER WITH_REGEXPS WITH_RUN_DEBUG WITH_SAX1 WITH_SCHEMAS WITH_SCHEMATRON WITH_THREADS WITH_THREAD_ALLOC WITH_TREE WITH_TRIO WITH_UNICODE WITH_VALID WITH_WRITER WITH_XINCLUDE WITH_XPATH WITH_XPTR WITH_ZLIB)
@@ -406,26 +405,28 @@ if(LIBXML2_WITH_TRIO)
 	list(APPEND LIBXML2_SRCS trio.c triostr.c)
 endif()
 
-__add_real_target(LibXml2 lib SOURCE ${LIBXML2_HDRS} ${LIBXML2_SRCS}
+__add_real_target(libxml_static lib SOURCE ${LIBXML2_HDRS} ${LIBXML2_SRCS}
 							  LIB ${CMAKE_REQUIRED_LIBRARIES}
-							  DEF ${DEFS}
-							  INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/include/ ${CMAKE_CURRENT_BINARY_DIR}
+							  DEF ${DEFS} LIBXML_STATIC
+							  INTERFACE_DEF LIBXML_STATIC
+							  INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/include/
+							  ${CMAKE_CURRENT_BINARY_DIR}
 							  )
 
 if(NOT BUILD_SHARED_LIBS)
-	target_compile_definitions(LibXml2 INTERFACE LIBXML_STATIC)
+	target_compile_definitions(libxml_static INTERFACE LIBXML_STATIC)
 	set(XML_CFLAGS "-DLIBXML_STATIC")
 endif()
 
 if(LIBXML2_WITH_THREADS)
-	target_compile_definitions(LibXml2 PRIVATE _REENTRANT)
+	target_compile_definitions(libxml_static PRIVATE _REENTRANT)
 	if(WIN32)
-		target_compile_definitions(LibXml2 PRIVATE HAVE_WIN32_THREADS)
+		target_compile_definitions(libxml_static PRIVATE HAVE_WIN32_THREADS)
 	endif()
 endif()
 
 target_include_directories(
-	LibXml2
+	libxml_static
 	PUBLIC
 	$<BUILD_INTERFACE:${CMAKE_CURRENT_BINARY_DIR}>
 	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
@@ -433,173 +434,28 @@ target_include_directories(
 )
 
 if(HAVE_DLOPEN)
-	target_link_libraries(LibXml2 PRIVATE dl)
+	target_link_libraries(libxml_static PRIVATE dl)
 	set(MODULE_PLATFORM_LIBS "-ldl")
 endif()
 
 if(HAVE_SHLLOAD)
-	target_link_libraries(LibXml2 PRIVATE dld)
+	target_link_libraries(libxml_static PRIVATE dld)
 	set(MODULE_PLATFORM_LIBS "-ldld")
 endif()
 
 if(UNIX)
-	target_link_libraries(LibXml2 PRIVATE m)
+	target_link_libraries(libxml_static PRIVATE m)
 	set(M_LIBS "-lm")
 endif()
 
 if(WIN32)
-	target_link_libraries(LibXml2 PRIVATE ws2_32)
+	target_link_libraries(libxml_static PRIVATE ws2_32)
 	set(WIN32_EXTRA_LIBADD "-lws2_32")
 endif()
 
-if(LIBXML2_WITH_ICONV)
-	target_link_libraries(LibXml2 PUBLIC Iconv::Iconv)
-	if(NOT Iconv_IS_BUILT_IN)
-		set(ICONV_LIBS "-liconv")
-	endif()
-endif()
-
-if(LIBXML2_WITH_ICU)
-	target_link_libraries(LibXml2 PRIVATE ICU::data ICU::i18n ICU::uc)
-	if(WIN32)
-		set(ICU_LIBS "-licudt -licuin -licuuc")
-	else()
-		set(ICU_LIBS "-licudata -licui18n -licuuc")
-	endif()
-endif()
-
-if(LIBXML2_WITH_LZMA)
-	target_link_libraries(LibXml2 PRIVATE LibLZMA::LibLZMA)
-	set(LZMA_LIBS "-llzma")
-endif()
-
 if(LIBXML2_WITH_THREADS)
-	target_link_libraries(LibXml2 PRIVATE Threads::Threads)
+	target_link_libraries(libxml_static PRIVATE Threads::Threads)
 	set(THREAD_LIBS ${CMAKE_THREAD_LIBS_INIT})
-endif()
-
-if(LIBXML2_WITH_PROGRAMS)
-	set(
-		PROGRAMS
-		xmlcatalog
-		xmllint
-	)
-	foreach(PROGRAM ${PROGRAMS})
-		add_executable(${PROGRAM} ${PROGRAM}.c)
-		add_executable(LibXml2::${PROGRAM} ALIAS ${PROGRAM})
-		target_link_libraries(${PROGRAM} LibXml2)
-		if(HAVE_LIBHISTORY)
-			target_link_libraries(${PROGRAM} history)
-		endif()
-		if(HAVE_LIBREADLINE)
-			target_link_libraries(${PROGRAM} readline)
-		endif()
-		install(TARGETS	${PROGRAM} EXPORT LibXml2 RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR} COMPONENT programs)
-	endforeach()
-endif()
-
-if(LIBXML2_WITH_TESTS)
-	enable_testing()
-	set(
-		TESTS
-		runxmlconf
-		runsuite
-		testapi
-		testAutomata
-		testC14N
-		testchar
-		testdict
-		testHTML
-		testModule
-		testlimits
-		testReader
-		testrecurse
-		testRegexp
-		testRelax
-		testSAX
-		testSchemas
-		testURI
-		testXPath
-	)
-	foreach(TEST ${TESTS})
-		add_executable(${TEST} ${TEST}.c)
-		target_link_libraries(${TEST} LibXml2)
-	endforeach()
-	if(EXISTS ${LIBXML2_XMLCONF_WORKING_DIR}/xmlconf/xmlconf.xml)
-		add_test(NAME runxmlconf COMMAND runxmlconf WORKING_DIRECTORY ${LIBXML2_XMLCONF_WORKING_DIR})
-	endif()
-	if(NOT WIN32)
-		add_test(NAME testapi COMMAND testapi)
-	endif()
-	add_test(NAME testchar COMMAND testchar)
-	add_test(NAME testdict COMMAND testdict)
-	add_test(NAME testrecurse COMMAND testrecurse WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
-	if(Threads_FOUND)
-		set(
-			TESTS_THREADS
-			runtest
-			testThreads
-		)
-		foreach(TEST ${TESTS_THREADS})
-			add_executable(${TEST} ${TEST}.c)
-			if(WIN32)
-				target_compile_definitions(${TEST} PRIVATE HAVE_WIN32_THREADS)
-			endif()
-			target_link_libraries(${TEST} LibXml2 Threads::Threads)
-		endforeach()
-		add_test(NAME runtest COMMAND runtest --out ${CMAKE_CURRENT_BINARY_DIR} WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
-		add_test(NAME testThreads COMMAND testThreads WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
-	endif()
-endif()
-
-if(LIBXML2_WITH_PYTHON)
-	execute_process(
-		COMMAND
-		${Python_EXECUTABLE}
-		${CMAKE_CURRENT_SOURCE_DIR}/python/generator.py
-		${CMAKE_CURRENT_SOURCE_DIR}/doc/libxml2-api.xml
-		${CMAKE_CURRENT_SOURCE_DIR}/python/libxml2-python-api.xml
-		WORKING_DIRECTORY
-		${CMAKE_CURRENT_BINARY_DIR}
-	)
-	file(READ python/libxml.py LIBXML_PY)
-	file(WRITE ${CMAKE_CURRENT_BINARY_DIR}/libxml2.py.in "${LIBXML_PY}")
-	file(READ ${CMAKE_CURRENT_BINARY_DIR}/libxml2class.py LIBXML2CLASS_PY)
-	file(APPEND ${CMAKE_CURRENT_BINARY_DIR}/libxml2.py.in "${LIBXML2CLASS_PY}")
-	configure_file(${CMAKE_CURRENT_BINARY_DIR}/libxml2.py.in libxml2.py COPYONLY)
-	add_library(
-		LibXml2Mod
-		libxml2-py.c
-		libxml2-py.h
-		python/libxml.c
-		python/libxml_wrap.h
-		python/types.c
-	)
-	target_include_directories(
-		LibXml2Mod
-		PUBLIC
-		$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/python>
-	)
-	target_link_libraries(LibXml2Mod LibXml2 Python::Python)
-	set_target_properties(
-		LibXml2Mod
-		PROPERTIES
-		IMPORT_PREFIX lib
-		OUTPUT_NAME xml2mod
-		PREFIX lib
-		VERSION ${PROJECT_VERSION}
-	)
-	install(
-		TARGETS	LibXml2Mod
-		ARCHIVE DESTINATION ${LIBXML2_PYTHON_INSTALL_DIR} COMPONENT development
-		LIBRARY DESTINATION ${LIBXML2_PYTHON_INSTALL_DIR} COMPONENT runtime NAMELINK_COMPONENT development
-		RUNTIME DESTINATION ${LIBXML2_PYTHON_INSTALL_DIR} COMPONENT runtime
-	)
-	if(MSVC AND BUILD_SHARED_LIBS)
-		install(FILES $<TARGET_PDB_FILE:LibXml2Mod> DESTINATION ${LIBXML2_PYTHON_INSTALL_DIR} CONFIGURATIONS Debug RelWithDebInfo COMPONENT debug)
-	endif()
-	install(FILES python/drv_libxml2.py DESTINATION ${LIBXML2_PYTHON_INSTALL_DIR} COMPONENT runtime)
-	install(FILES ${CMAKE_CURRENT_BINARY_DIR}/libxml2.py DESTINATION ${LIBXML2_PYTHON_INSTALL_DIR} COMPONENT runtime)
 endif()
 
 configure_package_config_file(
@@ -613,7 +469,7 @@ if(MSVC)
 endif()
 
 
-if(CC_INSTALL_LIBXML)
-	__install_directory_specif(${CMAKE_CURRENT_SOURCE_DIR}/include/ LibXml2)
+if(CC_INSTALL_LIBXML_STATIC)
+	__install_directory_specif(${CMAKE_CURRENT_SOURCE_DIR}/include/libxml libxml_static)
 	INSTALL(FILES ${CMAKE_CURRENT_BINARY_DIR}/libxml/xmlversion.h DESTINATION include/libxml/)
 endif()
